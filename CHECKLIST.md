@@ -226,6 +226,28 @@ Instructions for Claude when this skill is invoked...
 
 ---
 
+## 4.3 Design Integration Skills (if using Figma)
+
+For projects where Figma designs drive implementation, consider these specialized skills:
+
+- [ ] **Design verification skill** — Compare implementation against Figma, report discrepancies
+  _Why: Catches visual drift before it accumulates. Creates Playwright tests for CI._
+- [ ] **Design-to-code skill** — Build page templates from Figma designs with component inventory
+  _Why: Formalizes the Figma-to-code workflow. Prevents duplicate component creation._
+- [ ] **Component decomposition skill** — Break Figma pages into individual components, implement each
+  _Why: Avoids monolithic implementation. Ensures component reuse._
+
+**Key pattern — Duplicate Detection:**
+Before implementing any component from Figma, the skill should:
+1. Search existing components for matches (by name, structure, purpose)
+2. If found: verify it's truly the same component (not a variant or look-alike)
+3. Report: exact match / needs updates / different variant / new component
+4. Wait for user confirmation before proceeding
+
+This prevents the most common Figma-to-code problem: recreating components that already exist.
+
+---
+
 ## 5. Agents — Specialized Subagents
 
 Agents are specialized Claude instances with their own tools and system prompts. Most projects don't need custom agents — the built-in Explore, Plan, and general-purpose agents handle common needs.

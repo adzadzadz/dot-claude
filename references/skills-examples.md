@@ -127,6 +127,58 @@ When reviewing code:
 
 ---
 
+## Example 5: Figma Component Decomposition Skill
+
+**Location**: `.claude/skills/figma-component/SKILL.md`
+
+For design-driven projects where Figma designs are converted to code. This skill decomposes a page-level Figma design into individual components and implements each one, with duplicate detection to prevent recreating existing components.
+
+```markdown
+---
+name: figma-component
+description: Break down a Figma page design into individual components and implement each one. Use when the user provides a Figma URL and wants component-level implementation.
+version: 1.0.0
+---
+
+When decomposing a Figma design into components:
+
+1. Get page metadata (`get_metadata`) to see the full component tree
+2. Get page screenshot for visual reference
+3. List all distinct components found and present to the user
+4. Ask which components to implement
+
+For EACH component, before writing any code:
+
+5. **Duplicate detection (REQUIRED):**
+   - Search existing component directories for similar files
+   - Search CSS for matching class names
+   - If a potential match is found, compare:
+     - Same data fields? Same layout? Same purpose?
+     - Take a screenshot of the existing component and compare visually
+   - Report: "exact match" / "needs updates" / "similar but different variant" / "new component"
+   - Wait for user confirmation
+
+6. **Handle variants:**
+   - If Figma shows multiple variants (e.g., card with/without image), list them all
+   - Ask the user which to implement — never silently pick one
+
+7. **Map to data layer:**
+   - What data does this component need?
+   - Do the fields/models already exist?
+   - Ask before creating new data structures
+
+8. **Implement:** Create/update template, styles, and interactivity
+   - Follow project conventions (naming, CSS methodology, etc.)
+   - Colors via design tokens/CSS variables, never hardcoded
+```
+
+This pattern solves the most common Figma-to-code problems:
+- **Recreating existing components** — duplicate detection catches this
+- **Mixing up variants** — explicit variant handling prevents confusion
+- **Inventing data structures** — mapping to existing data layer first
+
+---
+
 ## Key Decisions When Creating Skills
 
 | Question | Guidance |
