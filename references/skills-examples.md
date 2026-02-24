@@ -179,6 +179,52 @@ This pattern solves the most common Figma-to-code problems:
 
 ---
 
+## Example 6: Tasks Skill (Combo Pattern)
+
+**Location**: `.claude/skills/tasks/SKILL.md`
+
+This skill works **in tandem with a task-manager agent** (see Example 4 in agents-examples.md). The skill handles user interaction and lightweight reads; the agent handles multi-file sync operations in isolated context.
+
+```markdown
+---
+name: tasks
+description: Manage project tasks. Use when the user says "tasks", "what's next", "add task", "mark done", "update status", "show tasks", or "sync status". Reads and updates docs/todo.md, plan docs, and STATUS.md.
+version: 1.0.0
+---
+
+When invoked:
+
+1. **Read current state**
+   - Read `docs/todo.md` to understand current task status
+   - Summarize: in-progress items, next pending items, any blockers
+
+2. **Determine action from user input**
+   - `/tasks` (no args) → Show status summary
+   - `/tasks add "description"` → Add a new task to docs/todo.md
+   - `/tasks done <item>` → Mark a task as complete
+   - `/tasks next` → Show the next actionable task
+   - `/tasks sync` → Sync status across all tracking files
+
+3. **Handle simple actions inline**
+   - Adding a single task: edit docs/todo.md directly
+   - Marking done: edit docs/todo.md directly
+   - Showing status: read and summarize
+
+4. **Delegate complex actions to the task-manager agent**
+   - Syncing across plan docs: invoke the task-manager agent
+   - Bulk updates: invoke the task-manager agent
+   - Pass context: current task state, what changed, which files to update
+
+5. **Report back**
+   - Summarize what changed
+   - Show updated task counts (done/total)
+   - Highlight any newly unblocked tasks
+```
+
+This combo pattern keeps the main conversation context clean — the skill does quick reads and simple edits, while the agent handles multi-file operations without polluting the context window. See `templates/agent-skill-combo/` for reusable templates.
+
+---
+
 ## Key Decisions When Creating Skills
 
 | Question | Guidance |
@@ -187,3 +233,4 @@ This pattern solves the most common Figma-to-code problems:
 | User-invocable? | Default is yes (appears as /skill-name). Set `user-invocable: false` if it should only be auto-triggered. |
 | Disable model invocation? | Set `disable-model-invocation: true` for anything with side effects (deploy, publish, send messages). |
 | How long? | Keep SKILL.md under 500 lines. Use supporting files in the same directory for reference material. |
+| Combo pattern? | If the workflow needs both a user command AND isolated execution (e.g., task management, multi-file sync), pair a skill with an agent. The skill handles UX; the agent handles the work. See `templates/agent-skill-combo/`. |

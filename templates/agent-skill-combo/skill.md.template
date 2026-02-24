@@ -1,0 +1,68 @@
+# Agent + Skill Combo: Skill Template
+
+Use this template for the **user-facing skill** in an agent+skill combo. The skill provides the `/slash-command` interface and orchestrates the paired agent.
+
+Copy this file to `.claude/skills/<name>/SKILL.md` and customize.
+
+---
+
+```markdown
+---
+name: SKILL_NAME
+description: DESCRIPTION. Use when the user says "TRIGGER_PHRASE_1", "TRIGGER_PHRASE_2", or "TRIGGER_PHRASE_3".
+version: 1.0.0
+---
+
+When invoked:
+
+1. **Read current state**
+   - Read FILE_OR_RESOURCE to understand current status
+   - Parse/summarize the current state for the user
+
+2. **Determine action**
+   - If the user provided arguments: HANDLE_ARGUMENTS
+   - If no arguments: SHOW_STATUS_OR_PROMPT
+
+3. **Delegate to agent** (if the action requires isolated work)
+   - Use the Task tool to invoke the `AGENT_NAME` agent
+   - Pass relevant context: WHAT_CONTEXT_TO_PASS
+   - The agent will: WHAT_THE_AGENT_DOES
+
+4. **Update tracking**
+   - Update FILE_OR_RESOURCE with new state
+   - Sync related files if needed: OTHER_FILES
+
+5. **Report back**
+   - Summarize what changed
+   - Show next steps or pending items
+```
+
+---
+
+## Combo Pattern Notes
+
+### Skill responsibilities
+- Parse user intent from the slash command and arguments
+- Read/display current state (lightweight, stays in main context)
+- Decide whether to handle inline or delegate to the agent
+- Update tracking files after the agent completes
+
+### Agent responsibilities
+- Perform the heavy computation or multi-file operations
+- Work in isolated context (doesn't pollute main conversation)
+- Return a structured result the skill can act on
+
+### Argument patterns
+
+Common argument formats for combo skills:
+
+```
+/skill-name                    → Show status / summary
+/skill-name add "description"  → Add a new item
+/skill-name done 3             → Mark item 3 as complete
+/skill-name sync               → Sync state across files
+```
+
+### Example: Task Manager combo
+
+The **skill** (`/tasks`) reads `docs/todo.md`, shows status, and handles simple updates inline. For complex operations (syncing status across plan docs, reordering priorities), it delegates to the **task-manager agent** which has Write/Edit/Grep tools and works in isolated context.

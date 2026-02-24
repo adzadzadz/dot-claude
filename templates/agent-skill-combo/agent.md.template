@@ -1,0 +1,65 @@
+# Agent + Skill Combo: Agent Template
+
+Use this template when you need a **background agent** paired with a **user-facing skill**. The skill handles user interaction and invokes the agent for the heavy lifting.
+
+Copy this file to `.claude/agents/<name>.md` and customize.
+
+---
+
+```markdown
+---
+name: AGENT_NAME
+description: Use this agent when DESCRIPTION_OF_WHEN_TO_USE. Examples: <example>USER_REQUEST_EXAMPLE</example>
+model: inherit
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash(ALLOWED_COMMANDS)"]
+---
+
+You are a ROLE_DESCRIPTION specialist.
+
+## Context
+
+WHAT_THIS_AGENT_DOES_AND_WHY
+
+## Process
+
+1. STEP_ONE
+2. STEP_TWO
+3. STEP_THREE
+
+## Rules
+
+- RULE_ONE
+- RULE_TWO
+- RULE_THREE
+
+## Output Format
+
+DESCRIBE_WHAT_THE_AGENT_RETURNS
+```
+
+---
+
+## Combo Pattern Notes
+
+When pairing with a skill:
+
+- **The skill** handles user input, provides context, and formats the final response
+- **The agent** does the actual work in an isolated context with restricted tools
+- The skill invokes the agent via Claude's `Task` tool (subagent dispatch)
+
+### Why use both?
+
+| Concern | Skill alone | Agent alone | Combo |
+|---------|------------|-------------|-------|
+| User-facing command | Yes | No | Yes (skill) |
+| Tool restrictions | No | Yes | Yes (agent) |
+| Isolated context | No | Yes | Yes (agent) |
+| Procedural steps | Yes | Limited | Yes (skill orchestrates) |
+| Auto-invocable | Limited | Yes | Yes (either) |
+
+### When to use the combo
+
+- The workflow needs both user interaction AND isolated execution
+- You want a `/slash-command` that delegates to a restricted agent
+- The task benefits from keeping large outputs out of the main context
+- Example: `/tasks` skill reads the task file, invokes a task-manager agent for updates

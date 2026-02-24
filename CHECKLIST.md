@@ -93,6 +93,8 @@ Settings control what Claude is allowed to do without asking. Poorly maintained 
   _Why: Keeps local settings small and intentional._
 - [ ] **Audit for embedded credentials** — search for passwords, API keys, tokens in allow rules
   _Why: Credentials embedded in permission strings are a real security risk._
+- [ ] **Run settings hygiene pass** — see `references/settings-hygiene.md` for the full process
+  _Why: Consolidates wildcards, removes stale entries, catches embedded secrets._
 
 ### 2.3 Stack-Specific Permissions
 - [ ] **Match permissions to your stack** — reference `references/by-stack/` for patterns
@@ -127,6 +129,8 @@ Start with zero or one hook. Add more only when you hit a repeated problem.
   _Why: Hooks are loaded at session start. Changes require a restart._
 
 ### 3.3 Recommended Starter Hooks
+
+A ready-to-use command-based stop hook script is available at `references/hooks/stop-verify-tests.sh`. Copy it to `.claude/hooks/` and customize the pass patterns for your test framework.
 
 **Post-write linting** (most universally useful):
 ```json
@@ -203,7 +207,16 @@ Skills are Markdown files that teach Claude reusable workflows. They appear as s
 - [ ] **Do you run tests in a specific way?** → test skill
   _Why: Encapsulates the right test commands, flags, and post-test actions._
 
-### 4.2 Create Skills (if needed)
+### 4.2 Task Management Assessment
+- [ ] **Do you track tasks in markdown files?** (e.g., `docs/todo.md`, `TASKS.md`, plan docs)
+  _Why: If yes, a `/tasks` skill + task-manager agent combo can automate status tracking, syncing across files, and showing what's next. This is one of the highest-ROI automations for projects with markdown-based task tracking._
+  - See Example 4 in `references/agents-examples.md` (task-manager agent)
+  - See Example 6 in `references/skills-examples.md` (tasks skill)
+  - Reusable templates in `templates/agent-skill-combo/`
+- [ ] **Do you have a session startup protocol?** (read task file, check status, review recent commits)
+  _Why: A tasks skill can automate this — showing current status on `/tasks` instead of manual file reads._
+
+### 4.3 Create Skills (if needed)
 - [ ] **Project skills go in `.claude/skills/<name>/SKILL.md`**
   _Why: Committed and shared with the team._
 - [ ] **Personal cross-project skills go in `~/.claude/skills/<name>/SKILL.md`**
@@ -226,7 +239,7 @@ Instructions for Claude when this skill is invoked...
 
 ---
 
-## 4.3 Design Integration Skills (if using Figma)
+## 4.4 Design Integration Skills (if using Figma)
 
 For projects where Figma designs drive implementation, consider these specialized skills:
 
@@ -313,3 +326,78 @@ Review your Claude Code config when any of these happen:
 - [ ] **Hook health** — do hook scripts still exist and work?
 - [ ] **Skill relevance** — are skills still accurate? Remove obsolete ones
 - [ ] **Agent utility** — are custom agents still used? Remove unused ones
+
+---
+
+## 7. Auto-Memory — Persistent Knowledge
+
+Claude Code's auto-memory system lets Claude remember things across sessions. Memory files live in `~/.claude/projects/<project-hash>/memory/` and persist between conversations.
+
+### 7.1 Enable and Structure Memory
+- [ ] **MEMORY.md exists and is concise** — this file is loaded into every conversation's context
+  _Why: Lines after ~200 are truncated. Keep it as an index with links to topic files._
+- [ ] **Topic files for detailed knowledge** — e.g., `debugging.md`, `patterns.md`, `release-process.md`
+  _Why: Keeps MEMORY.md short while preserving detailed notes._
+- [ ] **No stale or speculative entries** — memory should be verified facts, not guesses
+  _Why: Claude acts on memory with confidence. Wrong memory is worse than no memory._
+
+### 7.2 What to Store in Memory
+- [ ] **Environment gotchas** — commands that need special setup (nvm, local PHP binaries, etc.)
+  _Why: Saves re-discovery time every session._
+- [ ] **Architecture decisions** — key patterns, module organization, file conventions
+  _Why: Claude follows documented patterns instead of guessing._
+- [ ] **User preferences** — workflow preferences, tool choices, communication style
+  _Why: Claude adapts to how you work without being told each time._
+- [ ] **Solutions to recurring problems** — debugging tricks, workarounds, common errors
+  _Why: Prevents solving the same problem twice._
+
+### 7.3 What NOT to Store
+- [ ] **Session-specific context** — current task details, in-progress work
+  _Why: This belongs in task tracking files, not memory._
+- [ ] **Anything in CLAUDE.md** — don't duplicate project instructions
+  _Why: CLAUDE.md is already loaded every session. Duplication causes conflicts._
+- [ ] **Unverified conclusions** — don't save guesses from reading one file
+  _Why: Wrong memory is actively harmful._
+
+---
+
+## 8. MCP Servers — External Tool Integrations
+
+MCP (Model Context Protocol) servers extend Claude's capabilities with external tools. Common examples: Figma design access, browser automation (Playwright), documentation search (Context7).
+
+### 8.1 Assess MCP Needs
+- [ ] **Do you work with Figma designs?** → Figma MCP server
+  _Why: Enables design-to-code workflows, screenshot comparison, component mapping._
+- [ ] **Do you need browser testing or screenshots?** → Playwright MCP server
+  _Why: Enables visual verification, form testing, screenshot capture._
+- [ ] **Do you frequently reference library docs?** → Context7 MCP server
+  _Why: Provides up-to-date documentation and code examples without web search._
+- [ ] **Do you use other external services?** → Check for available MCP servers
+  _Why: MCP servers exist for databases, APIs, cloud services, and more._
+
+### 8.2 Configure MCP Servers
+- [ ] **Add server config to `.claude/settings.json`** (shared) or `.claude/settings.local.json` (personal)
+  _Why: Shared config ensures the whole team has access. Local config for personal API keys._
+  ```json
+  {
+    "mcpServers": {
+      "server-name": {
+        "command": "npx",
+        "args": ["-y", "@package/mcp-server"],
+        "env": {
+          "API_KEY": "..."
+        }
+      }
+    }
+  }
+  ```
+- [ ] **Keep API keys in local settings** — never commit secrets to settings.json
+  _Why: API keys in shared settings get committed to the repo._
+- [ ] **Test server connectivity** — restart Claude Code after adding servers and verify tools appear
+  _Why: MCP servers are loaded at session start. Config errors fail silently._
+
+### 8.3 Document MCP Servers in CLAUDE.md
+- [ ] **List available MCP servers** in your CLAUDE.md so Claude knows what tools are available
+  _Why: Claude can proactively use MCP tools when it knows they exist._
+- [ ] **Note any server-specific instructions** — authentication, rate limits, usage patterns
+  _Why: Prevents Claude from hitting rate limits or using tools incorrectly._

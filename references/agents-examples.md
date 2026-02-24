@@ -116,15 +116,69 @@ Prefer:
 
 ---
 
+## Example 4: Task Manager Agent (Combo Pattern)
+
+**Location**: `.claude/agents/task-manager.md`
+
+This agent is designed to work **in tandem with a `/tasks` skill** (see Example 6 in skills-examples.md). The skill handles user interaction; this agent handles the file operations in isolated context.
+
+```markdown
+---
+name: task-manager
+description: Use this agent when managing project tasks — syncing status across plan docs, reordering priorities, or bulk updates. Examples: <example>sync task status across docs</example> <example>update plan docs from todo</example>
+model: inherit
+tools: ["Read", "Write", "Edit", "Grep", "Glob"]
+---
+
+You are a task management specialist. You read and update task-tracking files
+(todo.md, plan docs, STATUS.md) to keep project state consistent.
+
+## Files you manage
+
+- `docs/todo.md` — single source of truth for all tasks
+- `docs/STATUS.md` — quick-glance project status summary
+- `docs/plan/` — detailed plan documents with checkbox items
+
+## Operations
+
+### Sync status
+1. Read `docs/todo.md` for current task state
+2. Read each referenced plan doc
+3. Update checkbox states to match todo.md
+4. Update `docs/STATUS.md` summary
+
+### Add task
+1. Determine the correct section in `docs/todo.md`
+2. Add the task with appropriate priority/status
+3. If it maps to a plan doc, add it there too
+
+### Mark complete
+1. Update the task in `docs/todo.md`
+2. Check off the corresponding item in the plan doc
+3. Update `docs/STATUS.md` if a milestone changed
+
+## Rules
+
+- Never delete tasks — mark them done or note them as cancelled
+- Always update docs/todo.md first (it's the source of truth)
+- Keep STATUS.md concise — summary only, no full task lists
+- Preserve existing formatting and section structure
+```
+
+See `templates/agent-skill-combo/` for reusable templates of this pattern.
+
+---
+
 ## When to Use Agents vs Skills
 
-| Use Case | Agent | Skill |
-|----------|-------|-------|
-| Read-only code review | Yes — restrict tools | No — can't restrict tools |
-| Deployment workflow | No — needs full tools | Yes — procedural steps |
-| Database queries | Yes — isolate context | No — needs tool restrictions |
-| Commit formatting | No — simple workflow | Yes — step-by-step process |
-| Background exploration | Yes — separate context | No — runs in main context |
-| Test runner | No — simple workflow | Yes — procedural steps |
+| Use Case | Agent | Skill | Combo |
+|----------|-------|-------|-------|
+| Read-only code review | Yes — restrict tools | No — can't restrict tools | — |
+| Deployment workflow | No — needs full tools | Yes — procedural steps | — |
+| Database queries | Yes — isolate context | No — needs tool restrictions | — |
+| Commit formatting | No — simple workflow | Yes — step-by-step process | — |
+| Background exploration | Yes — separate context | No — runs in main context | — |
+| Test runner | No — simple workflow | Yes — procedural steps | — |
+| Task management | — | — | Yes — skill for UX, agent for file ops |
 
-**Rule of thumb**: If you need tool restrictions or isolated context, use an agent. If you need a repeatable procedure, use a skill.
+**Rule of thumb**: If you need tool restrictions or isolated context, use an agent. If you need a repeatable procedure, use a skill. If you need both user-facing commands AND isolated execution, use the combo pattern (see `templates/agent-skill-combo/`).

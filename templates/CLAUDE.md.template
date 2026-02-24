@@ -36,6 +36,21 @@ project-root/
 - `config-file` — Primary configuration
 - `.env` — Environment variables (DO NOT read or commit)
 
+## Session Startup Protocol
+
+**Every time a new session starts or before working on any task:**
+
+1. Read this file (CLAUDE.md)
+2. Check current task status at `___` (e.g., docs/todo.md, TASKS.md)
+3. Read the relevant plan doc(s) for the current task if applicable
+4. Do NOT re-implement or duplicate work that is already marked as completed
+5. If a task is partially done, pick up where it left off
+6. **Always update the task tracker** when completing tasks, discovering blockers, or adding new work
+
+<!-- Delete this comment: Customize this section for your project.
+     The key insight: Claude starts fresh every session. Without a startup protocol,
+     it wastes tokens re-discovering project state and risks redoing completed work. -->
+
 ## Development Workflow
 
 ### Setup
@@ -51,7 +66,22 @@ project-root/
 ### Test
 ```bash
 # How to run the test suite
+# How to run a single test file
+# How to run tests in headed/UI mode (if applicable)
 ```
+
+#### Test Conventions
+
+<!-- Delete this comment: Fill in the conventions for your test framework.
+     This prevents Claude from writing tests that don't match your project style. -->
+
+- Test location: `tests/`
+- Test framework:
+- Naming convention: `*.test.js` / `*.spec.js` / `*_test.py` / etc.
+- Key patterns to follow:
+  - (e.g., "Use `waitUntil: 'networkidle'` for page loads")
+  - (e.g., "Guard optional sections with `count > 0` checks before asserting")
+  - (e.g., "Only run relevant tests, not the full suite")
 
 ### Build
 ```bash
@@ -67,6 +97,16 @@ project-root/
 ```bash
 # Key docker commands, how to exec into containers
 ```
+
+## Environment Gotchas
+
+<!-- Delete this comment: Document anything that makes your environment non-standard.
+     These are the things Claude gets wrong on first try without explicit instructions. -->
+
+- **Node/NPM**: (e.g., "Must source nvm before running npm", version requirements)
+- **PHP/Python/Ruby**: (e.g., "Use local binary at /path/to/bin, not system binary")
+- **Database**: (e.g., "MySQL socket at /path/to/socket", "Use ./wp wrapper for WP-CLI")
+- **Local URL**: (e.g., "http://localhost:3000", "http://localhost:10022")
 
 ## Conventions
 
@@ -109,7 +149,12 @@ project-root/
 ### Current Status
 - Link to TASKS.md, docs/plan/, or GitHub issues
 
-### Session Startup
-1. Read this file
-2. Check current task status at ___
-3. Review recent git log for context
+## After Completing a Task
+
+<!-- Delete this comment: This section tells Claude what to do when it finishes work.
+     Without it, Claude often stops without updating tracking files or running tests. -->
+
+1. **Update the task tracker** — mark items complete in your task file (e.g., docs/todo.md)
+2. **Update status doc** (if you have one) — reflect the new state of the feature/phase
+3. **Run tests** — all tests must pass before marking a task as complete
+4. **Run linter/static analysis** (if applicable) — catch issues before commit
